@@ -1,0 +1,19 @@
+# The collector and its Postgres share this pod's network namespace. The pod publishes the
+# collector's status server and Postgres (for the read-only `reader` login) on one address only:
+# BIND_ADDRESS in deploy.env, which replaces 127.0.0.1 here when the unit is installed.
+[Unit]
+Description=skyblock-collector pod
+StartLimitIntervalSec=0
+
+[Pod]
+PodName=skyblock-collector
+PublishPort=127.0.0.1:3004:8080/tcp
+PublishPort=127.0.0.1:5432:5432/tcp
+# uid 999 is postgres in its image and the collector's user, mapped to the host user so every file
+# under ~/services/skyblock-collector/data stays readable by that user.
+UserNS=keep-id:uid=999,gid=999
+# Podman builds its default pause image with catatonit, which some hosts lack.
+PodmanArgs=--infra-image=registry.k8s.io/pause:3.10@sha256:7c38f24774e3cbd906d2d33c38354ccf787635581c122965132c9bd309754d4a
+
+[Install]
+WantedBy=default.target

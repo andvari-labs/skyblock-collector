@@ -1,0 +1,43 @@
+[Unit]
+Description=skyblock-collector
+StartLimitIntervalSec=0
+# The collector spools to disk while Postgres is down, so it only orders after it.
+After=skyblock-collector-db.service
+Wants=skyblock-collector-db.service
+
+[Container]
+Image=localhost/skyblock-collector:current
+Pull=never
+ContainerName=skyblock-collector
+Pod=skyblock-collector.pod
+Exec=run
+# The release image runs as distroless's nonroot user; uid 999 is the one the pod maps to the host
+# user, who owns everything under data/.
+User=999:999
+EnvironmentFile=%h/services/skyblock-collector/collector.env
+Volume=%h/services/skyblock-collector/data/archive:/data/archive
+Volume=%h/services/skyblock-collector/data/spool:/data/spool
+Volume=%h/services/skyblock-collector/data/socket:/run/postgresql
+ReadOnly=true
+DropCapability=all
+NoNewPrivileges=true
+# The image has no shell, so the check runs the binary directly (exec form).
+HealthCmd=["/usr/local/bin/skyblock-collector", "health"]
+HealthInterval=30s
+HealthRetries=4
+HealthStartPeriod=2m
+# Restart=always only sees exits; this also restarts a hung collector.
+HealthOnFailure=kill
+StopTimeout=30
+LogDriver=k8s-file
+LogOpt=path=%h/services/skyblock-collector/logs/collector.log
+LogOpt=max-size=10mb
+
+[Service]
+Restart=always
+RestartSec=5
+TimeoutStartSec=5min
+TimeoutStopSec=45
+
+[Install]
+WantedBy=default.target

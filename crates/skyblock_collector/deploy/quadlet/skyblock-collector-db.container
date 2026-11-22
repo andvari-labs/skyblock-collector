@@ -1,0 +1,34 @@
+[Unit]
+Description=skyblock-collector Postgres
+StartLimitIntervalSec=0
+
+[Container]
+Image=docker.io/library/postgres:18@sha256:b9f6b8ff03b62f3cfd9d9ba3fe56226a9991c79d3fb46fd46536263bf02be553
+Pull=missing
+ContainerName=skyblock-collector-db
+Pod=skyblock-collector.pod
+Environment=POSTGRES_USER=collector POSTGRES_DB=skyblock POSTGRES_PASSWORD_FILE=/run/secrets/db-password
+Volume=%h/services/skyblock-collector/data/postgres:/var/lib/postgresql
+Volume=%h/services/skyblock-collector/data/socket:/var/run/postgresql
+Volume=%h/services/skyblock-collector/secrets/db-password:/run/secrets/db-password:ro
+Volume=%h/services/skyblock-collector/postgres/pg_hba.conf:/etc/postgresql/pg_hba.conf:ro
+Exec=postgres -c hba_file=/etc/postgresql/pg_hba.conf -c shared_buffers=4GB -c effective_cache_size=24GB -c work_mem=64MB -c maintenance_work_mem=1GB -c max_wal_size=16GB -c min_wal_size=2GB -c checkpoint_timeout=15min -c checkpoint_completion_target=0.9 -c wal_compression=zstd -c default_toast_compression=lz4 -c random_page_cost=1.1 -c effective_io_concurrency=200 -c max_parallel_workers_per_gather=4 -c jit=off -c log_min_duration_statement=10000 -c log_checkpoints=on
+# Parallel queries use /dev/shm; Podman's default of 64 MB is too small for them.
+ShmSize=2g
+HealthCmd=pg_isready -q -h /var/run/postgresql -U collector -d skyblock
+HealthInterval=30s
+HealthStartPeriod=10m
+# Postgres checkpoints on SIGINT; a kill would force crash recovery on the next start.
+StopTimeout=120
+LogDriver=k8s-file
+LogOpt=path=%h/services/skyblock-collector/logs/postgres.log
+LogOpt=max-size=10mb
+
+[Service]
+Restart=always
+RestartSec=5
+TimeoutStartSec=15min
+TimeoutStopSec=150
+
+[Install]
+WantedBy=default.target

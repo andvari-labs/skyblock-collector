@@ -1,0 +1,9 @@
+[Unit]
+Description=Pull the secondary collector's archive files and backfill what the database lacks
+
+[Service]
+Type=oneshot
+ExecStart=%h/services/skyblock-collector/pull-secondary.sh
+TimeoutStartSec=7h
+UMask=0077
+Nice=10

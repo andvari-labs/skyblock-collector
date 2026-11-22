@@ -1,0 +1,10 @@
+[Unit]
+Description=Back up skyblock-collector (database restore point and archive checks)
+
+[Service]
+Type=oneshot
+ExecStart=%h/services/skyblock-collector/backup.sh daily
+TimeoutStartSec=6h
+UMask=0077
+Nice=10
+IOSchedulingClass=idle

@@ -1,0 +1,12 @@
+[Unit]
+Description=Daily skyblock-collector backup
+
+[Timer]
+# 03:20 in the host's time zone. At UTC+3:20 or west of it, that is after 00:00 UTC, so the
+# previous UTC day's partitions can close; farther east they close a day later.
+OnCalendar=*-*-* 03:20:00
+Persistent=true
+Unit=skyblock-collector-backup.service
+
+[Install]
+WantedBy=timers.target

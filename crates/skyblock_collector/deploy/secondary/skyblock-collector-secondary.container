@@ -1,0 +1,41 @@
+[Unit]
+Description=skyblock-collector secondary: sales, bazaar, new listings, and the election, archived for the primary host to pull
+StartLimitIntervalSec=0
+Wants=network-online.target
+After=network-online.target
+
+[Container]
+Image=localhost/skyblock-collector-secondary:current
+Pull=never
+ContainerName=skyblock-collector-secondary
+Exec=secondary
+# uid 999 is the collector's user, mapped to the host user so the primary host can delete pulled files. The
+# release image runs as distroless's nonroot user, so the unit names uid 999.
+UserNS=keep-id:uid=999,gid=999
+User=999:999
+Volume=%h/services/skyblock-collector-secondary/data/archive:/data/archive
+ReadOnly=true
+DropCapability=all
+NoNewPrivileges=true
+# The image has no shell, so the check runs the binary directly (exec form).
+HealthCmd=["/usr/local/bin/skyblock-collector", "health"]
+HealthInterval=30s
+HealthRetries=4
+HealthStartPeriod=2m
+# Restart=always only sees exits; this also restarts a hung collector.
+HealthOnFailure=kill
+StopTimeout=30
+# This host also runs other services; keep the collector from crowding them.
+PodmanArgs=--memory=512m --cpu-shares=256
+LogDriver=k8s-file
+LogOpt=path=%h/services/skyblock-collector-secondary/logs/collector.log
+LogOpt=max-size=10mb
+
+[Service]
+Restart=always
+RestartSec=5
+TimeoutStartSec=5min
+TimeoutStopSec=45
+
+[Install]
+WantedBy=default.target

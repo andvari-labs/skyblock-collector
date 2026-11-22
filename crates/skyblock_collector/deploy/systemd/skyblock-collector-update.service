@@ -1,0 +1,8 @@
+[Unit]
+Description=Deploy the newest release of andvari-labs/skyblock-collector when it changes
+
+[Service]
+Type=oneshot
+ExecStart=%h/services/skyblock-collector/update.sh
+TimeoutStartSec=90min
+UMask=0077
