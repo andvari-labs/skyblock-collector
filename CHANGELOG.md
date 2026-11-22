@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.1](https://github.com/andvari-labs/skyblock-collector/compare/v0.2.0...v0.2.1) - 2026-11-22
+
+### Fixed
+
+- *(deploy)* copy the systemd units instead of linking them ([#4](https://github.com/andvari-labs/skyblock-collector/pull/4))
+
 ## [0.2.0](https://github.com/andvari-labs/skyblock-collector/releases/tag/v0.2.0) - 2026-11-22
 
 The first release. It polls Hypixel's auction house, ended auctions, bazaar, election and slower

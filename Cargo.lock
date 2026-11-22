@@ -1849,7 +1849,7 @@ checksum = "e3a9fe34e3e7a50316060351f37187a3f546bce95496156754b601a5fa71b76e"
 
 [[package]]
 name = "skyblock_collector"
-version = "0.2.0"
+version = "0.2.1"
 dependencies = [
  "anyhow",
  "axum",
@@ -1865,7 +1865,7 @@ dependencies = [
 
 [[package]]
 name = "skyblock_collector_core"
-version = "0.2.0"
+version = "0.2.1"
 dependencies = [
  "anyhow",
  "axum",
@@ -1892,7 +1892,7 @@ dependencies = [
 
 [[package]]
 name = "skyblock_collector_testdb"
-version = "0.2.0"
+version = "0.2.1"
 dependencies = [
  "sqlx",
  "thiserror",
