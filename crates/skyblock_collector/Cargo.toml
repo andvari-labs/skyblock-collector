@@ -1,0 +1,19 @@
+[package]
+name = "skyblock_collector"
+description = "Records Hypixel\u0027s in-game market and election data from its public API into a raw archive and Postgres."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+repository.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[[bin]]
+name = "skyblock-collector"
+path = "src/main.rs"
+
+[dependencies]
+skyblock_collector_core = { path = "../skyblock_collector_core" }
+
+[lints]
+workspace = true
