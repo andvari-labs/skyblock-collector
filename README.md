@@ -3,7 +3,8 @@
 [![CI](https://github.com/andvari-labs/skyblock-collector/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/andvari-labs/skyblock-collector/actions/workflows/ci.yml?query=branch%3Amain)
 [![Latest release](https://img.shields.io/github/v/release/andvari-labs/skyblock-collector)](https://github.com/andvari-labs/skyblock-collector/releases/latest)
 
-Records Hypixel's in-game market and election data from its public API into a raw archive and Postgres.
+Records Hypixel's in-game market and election data from its public API into a raw archive and
+Postgres.
 
 It polls the auction house, ended auctions, the bazaar, the election and a few slower resources,
 keeps every response byte for byte, and writes the parsed data to Postgres for querying. A second
