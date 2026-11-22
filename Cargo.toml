@@ -17,7 +17,7 @@ build_script_crates = []
 # don't check, so each one listed here needs a reason.
 proc_macro_crates = []
 # Test-support crates: members may depend on one only as a dev-dependency.
-dev_only_crates = []
+dev_only_crates = ["skyblock_collector_testdb"]
 # The docs files that must exist. The "Docs" section of CONTRIBUTING.md says what goes where.
 docs_files = [
     "README.md",
@@ -41,6 +41,7 @@ readme_sections = ["Run it", "Documentation", "License"]
 # crates, is a rule change.
 [workspace.metadata.policy.internal_dependencies]
 skyblock_collector_core = []
+skyblock_collector_testdb = []
 skyblock_collector = [
     "skyblock_collector_core",
 ]
@@ -54,6 +55,35 @@ license = "MIT OR Apache-2.0"
 publish = false
 
 [workspace.dependencies]
+anyhow = "1.0.104"
+axum = { version = "0.8.9", default-features = false, features = ["tokio", "http1", "json"] }
+base64 = "0.23.1"
+bytes = "1.12.1"
+clap = "4.6.7"
+fastnbt = "2.6.3"
+flate2 = "1.1.11"
+futures = "0.3.34"
+reqwest = { version = "0.13.5", default-features = false, features = ["rustls", "gzip", "http2"] }
+serde = { version = "1.0.229", features = ["derive"] }
+serde_json = { version = "1.0.154", features = ["raw_value"] }
+sha2 = "0.11.1"
+sqlx = { version = "0.9.0", default-features = false, features = [
+    "runtime-tokio",
+    "postgres",
+    "migrate",
+    "uuid",
+    "time",
+    "json",
+] }
+tempfile = "3.27.0"
+thiserror = "2.0.21"
+time = { version = "0.3.55", features = ["serde", "formatting", "parsing", "macros"] }
+tokio = { version = "1.54.1", features = ["full"] }
+tokio-util = "0.7.20"
+tracing = "0.1.44"
+tracing-subscriber = { version = "0.3.23", features = ["env-filter", "json"] }
+uuid = { version = "1.29.2", features = ["serde"] }
+zstd = { version = "0.14.4", features = ["zstdmt"] }
 
 # docs/style.md explains how these lints map to the Google Rust Style Guide.
 [workspace.lints.rust]

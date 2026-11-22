@@ -5,18 +5,29 @@
 
 Records Hypixel's in-game market and election data from its public API into a raw archive and Postgres.
 
+It polls the auction house, ended auctions, the bazaar, the election and a few slower resources,
+keeps every response byte for byte, and writes the parsed data to Postgres for querying. A second
+copy on another network covers outages.
+
 ## Run it
 
+The deploy kit runs it and its Postgres in a Podman pod, with an optional secondary collector on a
+second host. On a host the kit deployed:
+
 ```sh
-docker run --rm ghcr.io/andvari-labs/skyblock-collector:latest
+~/services/skyblock-collector/verify.sh
+curl -s http://<BIND_ADDRESS>:3004/status | jq
 ```
 
-[Install](docs/install.md) has the details.
+To deploy it, or to run the image by hand with your own Postgres, see [Install](docs/install.md).
+To query the data, see [Query the data](docs/queries.md).
 
 ## Documentation
 
-- [Install](docs/install.md): every way to install and update it.
-- [Verify a release](docs/verifying-releases.md): check that a download came from this repository.
+- [Install](docs/install.md): deploy it with the kit, or run the image by hand, with every setting and command.
+- [What it collects](docs/collecting.md): the feeds, how often each is polled, and how every response is kept.
+- [Query the data](docs/queries.md): connect to Postgres, find the views to start from, and copy worked examples.
+- [Verify a release](docs/verifying-releases.md): check that an image came from this repository.
 - [Design](docs/design.md): the goals, the architecture, and the decisions behind them.
 - [Stability](docs/stability.md): what a release can change, and what to read before you upgrade.
 - [Code style](docs/style.md): the style rules a tool checks, and the review checklist for the rest.

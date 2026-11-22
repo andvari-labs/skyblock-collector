@@ -1,0 +1,6 @@
+Collect sales, bazaar, new listings, and the election into an hourly archive only, with no database. Run on another network, its files fill the main collector's gaps through `backfill`
+
+Usage: skyblock-collector secondary
+
+Options:
+  -h, --help  Print help

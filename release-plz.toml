@@ -24,5 +24,6 @@ changelog_path = "./CHANGELOG.md"
 changelog_update = true
 changelog_include = [
     "skyblock_collector_core",
+    "skyblock_collector_testdb",
 ]
 git_tag_enable = true

@@ -1,0 +1,6 @@
+Exit 0 when the running collector reports healthy. Used by the container healthcheck
+
+Usage: skyblock-collector health
+
+Options:
+  -h, --help  Print help

@@ -1,0 +1,6 @@
+Finish archive files left open by an unclean stop, then exit
+
+Usage: skyblock-collector recover-archive
+
+Options:
+  -h, --help  Print help

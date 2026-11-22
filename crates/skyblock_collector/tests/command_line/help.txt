@@ -1,0 +1,16 @@
+Collects Hypixel SkyBlock auction, sale, bazaar, and mayor data
+
+Usage: skyblock-collector [COMMAND]
+
+Commands:
+  run              Collect continuously (the default)
+  secondary        Collect sales, bazaar, new listings, and the election into an hourly archive only, with no database. Run on another network, its files fill the main collector's gaps through `backfill`
+  replay           Write archived responses to the database. With no files, replays the whole archive
+  backfill         Write the sales, bazaar, new-listing, and election snapshots in these archive files that the database does not have yet, and nothing else
+  recover-archive  Finish archive files left open by an unclean stop, then exit
+  health           Exit 0 when the running collector reports healthy. Used by the container healthcheck
+  help             Print this message or the help of the given subcommand(s)
+
+Options:
+  -h, --help     Print help
+  -V, --version  Print version

@@ -1,0 +1,9 @@
+Write the sales, bazaar, new-listing, and election snapshots in these archive files that the database does not have yet, and nothing else
+
+Usage: skyblock-collector backfill [FILES]...
+
+Arguments:
+  [FILES]...  
+
+Options:
+  -h, --help  Print help

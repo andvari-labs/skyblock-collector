@@ -1,0 +1,5 @@
+error: unrecognized subcommand 'bogus'
+
+Usage: skyblock-collector [COMMAND]
+
+For more information, try '--help'.

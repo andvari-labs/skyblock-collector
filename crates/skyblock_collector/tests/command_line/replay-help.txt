@@ -1,0 +1,9 @@
+Write archived responses to the database. With no files, replays the whole archive
+
+Usage: skyblock-collector replay [FILES]...
+
+Arguments:
+  [FILES]...  
+
+Options:
+  -h, --help  Print help

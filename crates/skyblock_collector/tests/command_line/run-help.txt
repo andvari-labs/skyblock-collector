@@ -1,0 +1,6 @@
+Collect continuously (the default)
+
+Usage: skyblock-collector run
+
+Options:
+  -h, --help  Print help

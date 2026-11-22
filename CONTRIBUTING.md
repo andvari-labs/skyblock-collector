@@ -17,6 +17,7 @@ need admin rights on the repository or the release token, so `just ci` leaves th
 | --- | --- |
 | `crates/skyblock_collector` | The service: `main.rs` starts it and wires the parts together. No logic that a test would want to call. `skyblock-collector --version` prints the version line and exits 0 without starting the service, since CI's `Container image` job runs the image that way. `tests/command_line.rs` runs the built binary and checks it. |
 | `crates/skyblock_collector_core` | The logic. A crate of its own keeps the binary's command-line and runtime dependencies out of it, lets `just docs` check the doc comments of both crates, and gives `internal_dependencies` its first edge: the binary depends on the logic, never the reverse. |
+| `crates/skyblock_collector_testdb` | Test support, used only as a dev-dependency: a throwaway Postgres server for the tests that need one, started with `docker` in a container of its own and removed when the test ends, or within 30 minutes if the test process is killed, and a `block_on` that runs an async test body. The tests then need no database set up beforehand, so `just test` does locally what CI does. Setting `TEST_DATABASE_URL` to a server whose user may create databases uses that server instead. |
 
 Add a row for each crate you add, in the same pull request as the rule change that allows it.
 
@@ -39,8 +40,9 @@ Install these first:
 - [rustup](https://rustup.rs/), [cargo-binstall](https://github.com/cargo-bins/cargo-binstall),
   [uv](https://docs.astral.sh/uv/), and [Go](https://go.dev/dl/) for actionlint.
 - [shellcheck](https://www.shellcheck.net/) 0.11.0, which actionlint runs on the workflows'
-  scripts and `just policy` on a deploy kit's.
-- Docker, for `just image`, which builds the container image with `docker build`.
+  scripts and `just policy` on the deploy kit's.
+- Docker, for `just image`, which builds the container image with `docker build`, and for the
+  tests, which start a throwaway Postgres.
 
 Then install just, and use it to install the tools and toolchains the checks use:
 
