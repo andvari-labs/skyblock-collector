@@ -260,15 +260,38 @@ restart_pod() {
     (wait_db)
 }
 
+# Succeeds when any of the deployment's services or timers is still a link in the user's unit
+# folder, as a kit before 0.2.1 left them.
+units_linked() {
+    local u
+    for u in "${UNITS[@]}"; do
+        [[ -L $HOME/.config/systemd/user/${u/skyblock-collector/$NAME} ]] && return 0
+    done
+    return 1
+}
+
+# Puts the deployment's units where systemd reads them. The services and timers are copies, not
+# links: `systemctl --user disable` removes a linked unit's link too, which would leave a timer
+# "not found" until the next install, so turning a timer off would break turning it back on. Each
+# copy replaces the file, or an older kit's link, by rename.
 link_units() {
     local quadlet_dir="$HOME/.config/containers/systemd/$NAME"
     local unit_dir="$HOME/.config/systemd/user"
     mkdir -p "$quadlet_dir" "$unit_dir/$NAME-pod.service.d"
-    local q u
+    local q u target wanted=()
     for q in "${QUADLETS[@]}"; do ln -sfn "$APP/quadlet/${q/skyblock-collector/$NAME}" "$quadlet_dir/${q/skyblock-collector/$NAME}"; done
-    for u in "${UNITS[@]}"; do ln -sfn "$APP/systemd/${u/skyblock-collector/$NAME}" "$unit_dir/${u/skyblock-collector/$NAME}"; done
+    for u in "${UNITS[@]}"; do
+        target="$unit_dir/${u/skyblock-collector/$NAME}"
+        if [[ $u == *.timer && -L $unit_dir/timers.target.wants/${target##*/} ]]; then wanted+=("${target##*/}"); fi
+        cp -- "$APP/systemd/${u/skyblock-collector/$NAME}" "$target.new.$$" || return 1
+        chmod 600 -- "$target.new.$$" && mv -f -- "$target.new.$$" "$target" || return 1
+    done
     ln -sfn "$APP/systemd/$NAME-pod.service.d/restart.conf" "$unit_dir/$NAME-pod.service.d/restart.conf"
-    run systemctl --user daemon-reload
+    run systemctl --user daemon-reload || return 1
+    # An older kit's enablement links point at the deployment's files rather than at these copies.
+    # reenable points them here, for exactly the timers that were enabled; it starts and stops
+    # nothing, so a timer an operator turned off stays off.
+    if ((${#wanted[@]})); then run systemctl --user reenable "${wanted[@]}" 2>/dev/null; fi
 }
 
 # Copies the kit from a checkout into $APP. Each file is replaced by rename, so a script that is

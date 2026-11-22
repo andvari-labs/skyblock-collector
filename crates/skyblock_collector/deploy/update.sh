@@ -31,6 +31,12 @@ deploy_secondary() {
 
 force=${1:-}
 lock
+# The deploy that installed this kit ran the older kit's update.sh, which linked the units again;
+# the first run of this one replaces those links with copies, keeping each timer's state.
+if units_linked; then
+    log 'replacing the links to the systemd units with copies'
+    link_units
+fi
 # Without a secondary collector there is nothing to pull; a timer left from one would fail every run.
 if [[ -z $SECONDARY_HOST ]] && systemctl --user is-enabled --quiet "$NAME-pull.timer" 2>/dev/null; then
     run systemctl --user disable --now "$NAME-pull.timer" || true

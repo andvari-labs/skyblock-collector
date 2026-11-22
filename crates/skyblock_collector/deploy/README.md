@@ -125,7 +125,7 @@ collector_cmd backfill /data/secondary/archive/<feed>/<day>/<file>...
 3. If the collector is not healthy within 5 minutes, it puts back the previous image and files and records the revision in `failed-rev`. That release is skipped until a newer one.
 4. It deploys the secondary collector, as described above.
 
-To deploy again after a failure, run `update.sh --force`.
+To deploy again after a failure, run `update.sh --force`. To turn updates off, and back on, see [Go back to the image from before the first release](#go-back-to-the-image-from-before-the-first-release); the timers are ordinary unit files under `~/.config/systemd/user/`, so `systemctl --user disable` and `enable` work on them.
 
 The image is public, so the pulls need no credential, and they use an empty auth file so a credential another service keeps in podman's default auth file can't get in the way. For a private image, set `REGISTRY_AUTHFILE` in `deploy.env` to a podman auth file with read access to it, which the pulls read in place:
 
@@ -188,4 +188,4 @@ podman tag localhost/skyblock-collector:pre-trellis localhost/skyblock-collector
 systemctl --user restart skyblock-collector.service
 ```
 
-The update timer leaves it running until the next release, which it then deploys as usual. To stay on it, stop the timer: `systemctl --user stop skyblock-collector-update.timer`.
+The update timer leaves it running until the next release, which it then deploys as usual. To stay on it, turn updates off: `systemctl --user disable --now skyblock-collector-update.timer`. Turn them back on with `systemctl --user enable --now skyblock-collector-update.timer`. `install.sh` turns the timers on again unless `deploy.env` sets `ENABLE_TIMERS=0`.
