@@ -1,4 +1,4 @@
-# Install skyblock-collector
+# Container image
 
 Read this page to deploy skyblock-collector, or to run its image by hand. It covers the deploy kit,
 which runs it on one host with an optional secondary collector on another, the image and its tags,
@@ -51,7 +51,9 @@ Each release pushes three tags, such as these for 1.4.2:
 
 ## Run the image by hand
 
-The collector needs a Postgres database, a directory for the archive and one for the spool. Its
+The README's [Quick start](../README.md#quick-start) runs the collector and a Postgres beside it in
+four steps. To run the image against a Postgres of your own instead: the collector needs a Postgres
+database, a directory for the archive and one for the spool. Its
 database login creates the schema, including a `reader` role, so it must be a superuser, or own
 the database and have `CREATEROLE`:
 

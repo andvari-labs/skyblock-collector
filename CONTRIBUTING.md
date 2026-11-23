@@ -66,11 +66,13 @@ nightly rustfmt, and stable rustfmt ignores them with a warning. For rust-analyz
 
 ## Check a change
 
-`just ci` runs every check CI runs. `just` alone lists them, so you can run one at a time:
+`just ci` runs every check CI runs. `just` alone lists them, so you can run one at a time. On a
+branch stacked on another pull request, pass the branch it targets, such as
+`just ci origin/my-rules`, so `rule-changes` compares with that branch, not `origin/main`:
 
 | Recipe | Checks |
 | --- | --- |
-| `just fmt-check` | Rust and TOML formatting. `just fmt` fixes both. |
+| `just fmt-check` | Rust and TOML formatting. `just fmt` fixes both. Use it, not `cargo fmt`: stable rustfmt skips the nightly options in `rustfmt.toml`, so `just fmt-check` fails after a plain `cargo fmt`. |
 | `just typos` | Spelling. |
 | `just actionlint`, `just zizmor` | The GitHub workflows, and their security. |
 | `just shear` | Every declared dependency is used. |
@@ -116,6 +118,11 @@ pulled for this machine's architecture, so the image holds the wrong architectur
   panic is for a bug or a broken invariant.
 - **Fail closed.** Input the code doesn't recognize is an error, not a default.
 - **Logs.** No secret, token or personal data in a log line or an error message.
+- **Test data.** A fixture, stand-in, mock or corpus recorded or generated from real use, and an
+  assertion copied from an older project's tests, is real data until every value in it has been
+  replaced. A check that guards against private values tests their shape and range, such as no
+  17-digit number in the range a service issues to people, and never holds a list of the values
+  themselves, hashed or not: a short list can be read back.
 - **Tests.** Put a test next to the code it tests, or in the crate's `tests/` directory when it
   uses only the crate's public API. A test is never skipped or retried: `#[ignore]` fails
   `just dylint`, and nextest has no retries. A test of timeouts, expiry, ordering or retries uses
@@ -153,9 +160,11 @@ Each crate has one job. `just policy` checks every crate against the rules
 one:
 
 - **Place and manifest.** Put it in `crates/<name>`. Its `[lints]` table is exactly
-  `workspace = true`. It inherits `version`, `edition`, `rust-version`, `publish` and `license`
-  from the workspace. The crates share one version, which release-plz bumps in the root
-  `Cargo.toml` alone; trellis doesn't support a crate versioned apart from the others.
+  `workspace = true`. Its `[package]` gives a `description` and inherits `version`, `edition`,
+  `rust-version`, `repository`, `license` and `publish` from the workspace, each as
+  `<key>.workspace = true`, as the generated crate's `Cargo.toml` does. The crates share one
+  version, which release-plz bumps in the root `Cargo.toml` alone; trellis doesn't support a crate
+  versioned apart from the others.
 - **Settings.** Give it an entry in `internal_dependencies` in `[workspace.metadata.policy]`,
   which lists the workspace crates it may depend on directly, and list it in `changelog_include`
   in `release-plz.toml`, so its commits reach the release notes. A build script needs the crate in
@@ -177,8 +186,11 @@ The docs keep one shape. Write them to the
 [a tool can decide](docs/style.md#docs-checked-by-just-policy).
 
 - **Settings.** `docs_files` in `[workspace.metadata.policy]` sets the files `just policy` expects,
-  and `readme_sections` the README's `##` sections, in order. trellis starts the README with
-  `Run it`, `Documentation` and `License`.
+  and `readme_sections` the README's `##` sections, in order.
+- **The README.** A new project's `README.md` starts as an outline with a `**To write:**` prompt
+  under each part, and one generated before trellis wrote outlines keeps what it had. Either way
+  the project owns it, and an update never touches it.
+  [docs/style.md](docs/style.md#documentation) says what a README opens with, and in what order.
 - **Where things go.** Design decisions go in [docs/design.md](docs/design.md), and compatibility
   promises in [docs/stability.md](docs/stability.md). release-plz writes `CHANGELOG.md`; don't edit
   it by hand except as the release steps in [docs/maintaining.md](docs/maintaining.md#each-release)
@@ -227,25 +239,29 @@ or `fix(config)!: reject unknown keys`. A `!` marks a breaking change.
 A pull request changes either the rules or the code, never both. Roughly, code is what's under
 `crates/` and every `.rs` file; the README, changelog, licenses, `Cargo.lock`, the root `Cargo.toml`
 dependency tables, and pages in `docs/` other than `docs/style.md` with their images are neither;
-and anything else is a rule. Every `build.rs` is a rule too, except one below a crate's `src/`,
-`tests/`, `benches/` or `examples/` when the crate's directory holds no other `Cargo.toml`, in any
-letter case, before or after the change. The file a crate's `build` key names is a rule as well, as
-is every `.gitignore`, `.ignore`, `bunfig.toml`, `.npmrc`, TypeScript settings file (a `.json` file
-whose name starts with `tsconfig`) and git submodule, wherever it sits, and every path Windows reads
-as another path: one with a part that ends in a dot or a space, that holds a `:` or a `\`, or that
-has the form of a short name. `just policy` fails a TypeScript settings file whose `extends` or
-`references` names anything but another one in the repository, by a path that starts with `./` or
-`../`, so every file a `tsconfig.json` reaches is a rule. It also fails one that TypeScript could
-read another way than `just policy` does, such as one with a lone carriage return. The root
-`.gitattributes` may set only `text`, `-text`, `text=auto` and `eol=lf`, with no attribute macro, so
-a checkout holds the bytes the diff showed, apart from line endings; `just policy` fails any other
-attribute, such as `working-tree-encoding`, `ident`, `filter` or `binary`. A crate whose directory
-moves whole, renamed with no file in it changed, is neither rule nor code, so a crate's directory
-can move in one pull request beside the `path` of each dependency on it. A file in the crate that
-reads its own location, such as a build script that reads `CARGO_MANIFEST_DIR`, can then do
-something else, as a code change can change what a listed build script emits. An untracked file that
-fits none of these, such as an `.envrc`, counts as a rule in `just rule-changes`: commit it in a
-rules pull request, or list it in `.git/info/exclude`.
+and anything else is a rule. Under `docs/`, the pages are the `.md` files, apart from an agent
+instruction file such as `docs/AGENTS.md`, which is a rule, and the images are the `.png`, `.svg`,
+`.jpg`, `.jpeg`, `.gif` and `.webp` files. A `.rs` file there is code, as anywhere, and any other
+file, such as `docs/schema.sql`, is a rule that no docs check reads, apart from a page with another
+Markdown extension, such as `.markdown`, which `just policy` fails. Every `build.rs` is a rule too,
+except one below a crate's `src/`, `tests/`, `benches/` or `examples/` when the crate's directory
+holds no other `Cargo.toml`, in any letter case, before or after the change. The file a crate's
+`build` key names is a rule as well, as is every `.gitignore`, `.ignore`, `bunfig.toml`, `.npmrc`,
+TypeScript settings file (a `.json` file whose name starts with `tsconfig`) and git submodule,
+wherever it sits, and every path Windows reads as another path: one with a part that ends in a dot
+or a space, that holds a `:` or a `\`, or that has the form of a short name. `just policy` fails a
+TypeScript settings file whose `extends` or `references` names anything but another one in the
+repository, by a path that starts with `./` or `../`, so every file a `tsconfig.json` reaches is a
+rule. It also fails one that TypeScript could read another way than `just policy` does, such as one
+with a lone carriage return. The root `.gitattributes` may set only `text`, `-text`, `text=auto` and
+`eol=lf`, with no attribute macro, so a checkout holds the bytes the diff showed, apart from line
+endings; `just policy` fails any other attribute, such as `working-tree-encoding`, `ident`, `filter`
+or `binary`. A crate whose directory moves whole, renamed with no file in it changed, is neither
+rule nor code, so a crate's directory can move in one pull request beside the `path` of each
+dependency on it. A file in the crate that reads its own location, such as a build script that reads
+`CARGO_MANIFEST_DIR`, can then do something else, as a code change can change what a listed build
+script emits. An untracked file that fits none of these, such as an `.envrc`, counts as a rule in
+`just rule-changes`: commit it in a rules pull request, or list it in `.git/info/exclude`.
 
 A root deploy kit that moves into `crates/skyblock_collector/deploy/` with every code file unchanged
 leaves its code out as a moved crate does, while its files that are rules by their names count at
@@ -278,12 +294,20 @@ add the dependency in a code pull request.
 
 A framework that lets in `ctor` or `inventory` this way may also have its macros place
 constructors, code that runs before `main()`, in this project's own code, which
-`code_before_main` reports. GPUI's `actions!` and `#[derive(Action)]` do. Allow them in the same
-rules pull request as the `wrappers` entry: list each macro in `constructor_macros` in
+`code_before_main` reports. GPUI's `actions!` and `#[derive(Action)]` place one only when they
+register the action, and its `register_action!` always does. Give each action
+`#[action(no_register)]`, beside `#[derive(Action)]` or before its name in `actions!`, and call no
+`register_action!`, and they place none. The project then needs no entry, and the lint stays
+strict. An unregistered action can't be invoked by name or built from JSON, such as a keymap file.
+
+Listing the macros is the fallback: a listed macro may place any constructor. Allow them in the
+same rules pull request as the `wrappers` entry: list each macro in `constructor_macros` in
 `dylint.toml`, by the path the report names, the crate that defines the macro and its name, such as
-`gpui::actions` and `gpui_macros::Action`. A listed macro may place any constructor, so list only
-the macros the framework needs. A constructor that one of this project's own macros writes stays
-reported, even inside a listed macro.
+`gpui::actions` and `gpui_macros::Action`. For GPUI, that entry is all they need. The lint levels
+that a listed macro writes around its constructor, such as the `allow` that `inventory::submit!`
+writes, pass `suppression_policy` without an entry in `trusted_macro_crates`, as long as they cover
+no code written in this project's source. List only the macros the framework needs. A constructor
+that one of this project's own macros writes stays reported, even inside a listed macro.
 
 A deploy kit, the scripts, container files and systemd units in `crates/skyblock_collector/deploy/`
 that install and run the project on a host, is code too, like the rest of `crates/`, and so is a kit
@@ -316,6 +340,11 @@ or `source-path=` that leaves the kit, any key but `disable`, `enable`, `shell`,
 rule: a `justfile` or `*.just` module, an `action.yml`, `.gitignore`, `.ignore`, `bunfig.toml`,
 `.npmrc`, `build.rs`, TypeScript settings file, agent instruction file or tool configuration file,
 and a path Windows reads as another.
+
+## Documentation
+
+- [Code style](docs/style.md): the style rules a tool checks, and the review checklist for the rest.
+- [Maintain](docs/maintaining.md): the owner's repository settings, releases and trellis updates.
 
 ## License
 

@@ -1,5 +1,5 @@
 # Copier writes this file. `uvx copier update` reads it to update the project from trellis.
-_commit: v0.18.0
+_commit: v0.20.0
 _src_path: https://github.com/265866/trellis.git
 architectures:
 - x86_64
@@ -9,8 +9,10 @@ description: Records Hypixel's in-game market and election data from its public 
     into a raw archive and Postgres.
 github_owner: andvari-labs
 image: {}
+interface: service
 kind: service
 license: MIT OR Apache-2.0
+other_interfaces: []
 project_name: skyblock-collector
 visibility: public
 web_ui: false
