@@ -37,7 +37,7 @@ RUN case "$TARGETARCH" in \
 # to the same mode, which the user can't enter.
 RUN install -D --mode=644 --target-directory=/licenses target/THIRD-PARTY-LICENSES.html LICENSE-MIT LICENSE-APACHE
 
-FROM gcr.io/distroless/cc-debian13:nonroot@sha256:cb87acc574abe719b6e5c547384defa2f7b1f24af9605d3f618cf852495d8be2
+FROM gcr.io/distroless/cc-debian13:nonroot@sha256:532c7a94f9e96ba9db75eb9388f4227751131c7cb0a411d1a8521af4096135de
 LABEL org.opencontainers.image.source="https://github.com/andvari-labs/skyblock-collector" \
       org.opencontainers.image.description="Records Hypixel's in-game market and election data from its public API into a raw archive and Postgres." \
       org.opencontainers.image.licenses="MIT OR Apache-2.0"
