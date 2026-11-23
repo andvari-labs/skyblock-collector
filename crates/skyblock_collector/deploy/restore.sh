@@ -5,8 +5,8 @@
 #                                           the image of a release that changes the schema
 #
 # A revision is a release tag such as v0.3.0, or the commit of one. The one unreleased revision
-# it takes is the one in pre-trellis-rev, which ran before the first release; its image is kept as
-# :pre-trellis.
+# it takes is the one in pre-trellis-rev, which ran before the first release, and only while its
+# image is kept as :pre-trellis.
 #
 # Builds the new copy in a separate database and replays the archive into it while the collector
 # keeps writing to the current one, so history goes in oldest first. The collector stops only to
@@ -23,20 +23,36 @@ else
     point=$(realpath "${1:?$usage}")
     [[ $point == "$BACKUPS"/* && -d $point && -f $point/SHA256SUMS ]] || fail "not a restore point under $BACKUPS: $point"
 fi
+pre_release=$(cat "$APP/pre-trellis-rev" 2>/dev/null || true)
+is_pre_release() { [[ -n $pre_release && ${#revision} -ge 7 && $pre_release == "$revision"* ]]; }
+# podman image exists exits 1 for a missing image; any other failure is podman's own.
+pre_release_image_kept() {
+    local status=0
+    [[ -n $pre_release ]] || return 1
+    run podman image exists "$IMAGE:$PRE_RELEASE_TAG" || status=$?
+    ((status <= 1)) || fail "could not check for $IMAGE:$PRE_RELEASE_TAG (podman exit $status)"
+    return "$status"
+}
+if [[ -n ${revision:-} ]] && is_pre_release && ! pre_release_image_kept; then
+    fail "the image of $pre_release, $IMAGE:$PRE_RELEASE_TAG, was removed, so that revision can no longer be rebuilt; pass a release tag"
+fi
 lock
 wait_db
 
 # For a schema change, pull the release's image before anything stops.
 if [[ -n ${revision:-} ]]; then
     newest_release >/dev/null
-    pre_release=$(cat "$APP/pre-trellis-rev" 2>/dev/null || true)
-    if [[ -n $pre_release && ${#revision} -ge 7 && $pre_release == "$revision"* ]] && run podman image exists "$IMAGE:$PRE_RELEASE_TAG"; then
+    if is_pre_release && pre_release_image_kept; then
         revision=$pre_release
         image="$IMAGE:$PRE_RELEASE_TAG"
     else
         revision=$(git -C "$REPO" rev-parse --verify "$revision^{commit}") || fail "no revision $revision in the clone"
         tag=$(release_of "$revision")
-        [[ -n $tag ]] || fail "$revision is not a release, so it has no image; pass a release tag, or $(cat "$APP/pre-trellis-rev" 2>/dev/null || echo "the revision in pre-trellis-rev")"
+        if [[ -z $tag ]]; then
+            hint=''
+            if pre_release_image_kept; then hint=", or $pre_release"; fi
+            fail "$revision is not a release, so it has no image; pass a release tag$hint"
+        fi
         if ! run podman image exists "$IMAGE:$revision"; then
             pull_release "$tag" amd64 "$IMAGE:$revision" || fail "could not pull the image for $tag"
         fi

@@ -25,7 +25,7 @@ This directory is the deployment of [andvari-labs/skyblock-collector](https://gi
 | `deploy.env` | The host's settings for these scripts: address, ports, secondary host, and the path of a registry credential for a private image. Restore points keep a copy. |
 | `repo/` | A clone of the repository at the deployed release. |
 | `installed-rev`, `failed-rev` | The deployed release's commit, and the commit of a release whose deploy failed. |
-| `pre-trellis-rev` | The revision that ran before the first release; its image is kept as `localhost/skyblock-collector:pre-trellis`. |
+| `pre-trellis-rev` | The revision that ran before the first release; its image is kept as `localhost/skyblock-collector:pre-trellis` until someone removes it. |
 | `secondary-rev`, `secondary-failed`, `secondary-bad-rev` | The revision the secondary collector runs, when its last deploy failed, and a revision it was unhealthy on, which is not retried until the next release. |
 | `logs/` | `collector.log` and `postgres.log` (container output, 10 MB each) and `operations.log` (these scripts). |
 
@@ -81,7 +81,7 @@ The schema in `schema/0001_schema.sql` is fixed once a database is created from 
 ~/services/skyblock-collector/restore.sh --rebuild v<version>
 ```
 
-It pulls that release's image before it stops anything, and the swapped-in database starts on it. A release commit works too. The one unreleased revision it takes is the one in `pre-trellis-rev`, with the image kept for it; any other unreleased revision has no image, and `restore.sh` refuses it. The next `update.sh` run then installs the release's deploy files and records it as installed, even if the update timer had already tried that revision against the old database and marked it failed. Restore points taken before a schema change hold the old schema, so `restore.sh` refuses them; restore a newer point or rebuild.
+It pulls that release's image before it stops anything, and the swapped-in database starts on it. A release commit works too. The one unreleased revision it takes is the one in `pre-trellis-rev`, and only while its image `localhost/skyblock-collector:pre-trellis` is kept. Once that image is removed, `restore.sh` refuses the revision before it locks, creates or stops anything. Any other unreleased revision has no image, and `restore.sh` refuses it. The next `update.sh` run then installs the release's deploy files and records it as installed, even if the update timer had already tried that revision against the old database and marked it failed. Restore points taken before a schema change hold the old schema, so `restore.sh` refuses them; restore a newer point or rebuild.
 
 ## Write to a closed day
 
@@ -189,3 +189,8 @@ systemctl --user restart skyblock-collector.service
 ```
 
 The update timer leaves it running until the next release, which it then deploys as usual. To stay on it, turn updates off: `systemctl --user disable --now skyblock-collector-update.timer`. Turn them back on with `systemctl --user enable --now skyblock-collector-update.timer`. `install.sh` turns the timers on again unless `deploy.env` sets `ENABLE_TIMERS=0`.
+
+All of this works only while `:pre-trellis` is kept. Once it is removed, neither these commands
+nor `restore.sh --rebuild` with the revision in `pre-trellis-rev` can bring that build back. The
+release before the current one stays as `localhost/skyblock-collector:previous`, and runs the same
+way in its place.
