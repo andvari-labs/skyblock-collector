@@ -4,12 +4,15 @@ Read this page to connect to the collected data and find the views to start from
 
 ## Connect
 
-Postgres listens on the address and port the deployment's `deploy.env` sets, `BIND_ADDRESS` and
-`PG_PORT`, by default 127.0.0.1:5432. Connect with the read-only `reader` login:
+With the deploy kit, Postgres listens on the address and port the deployment's `deploy.env` sets,
+`BIND_ADDRESS` and `PG_PORT`, by default 127.0.0.1:5432. Connect with the read-only `reader` login:
 
 ```sh
-psql "postgres://reader:$(cat ~/services/skyblock-collector/secrets/reader-password)@<BIND_ADDRESS>:5432/skyblock"
+psql "postgres://reader:$(cat ~/services/skyblock-collector/secrets/reader-password)@<BIND_ADDRESS>:<PG_PORT>/skyblock"
 ```
+
+In the README's Quick start, Postgres isn't published to the host and `reader` can't log in, so run
+queries in its container as `collector`: `docker exec skyblock-db psql -U collector -d skyblock`.
 
 Start from these views:
 
