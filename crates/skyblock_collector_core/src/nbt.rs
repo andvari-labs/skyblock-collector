@@ -200,7 +200,7 @@ mod tests {
             ("id", Nbt::String("PET".into())),
             (
                 "uuid",
-                Nbt::String("40a18ff1-b547-404c-b11e-5fc346f356e0".into()),
+                Nbt::String("00000000-0000-4000-8000-000000000001".into()),
             ),
             (
                 "petInfo",
@@ -226,7 +226,7 @@ mod tests {
         assert_eq!(decoded.item_id.as_deref(), Some("PET"));
         assert_eq!(
             decoded.item_uuid.as_deref(),
-            Some("40a18ff1-b547-404c-b11e-5fc346f356e0")
+            Some("00000000-0000-4000-8000-000000000001")
         );
         assert_eq!(decoded.count, Some(1));
         let attributes = decoded.attributes.unwrap();

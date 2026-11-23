@@ -249,7 +249,7 @@ mod tests {
     fn auction_keeps_unknown_fields_and_both_item_bytes_shapes() {
         let page: AuctionsPage = serde_json::from_str(
             r#"{"success":true,"page":0,"totalPages":2,"lastUpdated":1794551932072,"auctions":[
-              {"uuid":"fc97b9c307074578901cc86909097f89","auctioneer":"4d04613637c742ec80dbdb7358a426e8",
+              {"uuid":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa1","auctioneer":"cccccccccccccccccccccccccccccccc",
                "start":1,"end":2,"item_name":"X","starting_bid":5,"item_bytes":"H4sI","bin":true,
                "bids":[],"brand_new_field":{"a":1}},
               {"uuid":"0000000000000000000000000000000a","item_bytes":{"type":0,"data":"H4sJ"}}]}"#,
